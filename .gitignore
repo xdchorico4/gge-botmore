@@ -1,0 +1,8 @@
+node_modules
+.vscode
+ggeConfig.json
+user.db
+package-lock.json
+assets/itemassets
+items.json
+ItemsVersion.properties
