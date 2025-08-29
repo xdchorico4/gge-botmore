@@ -48,7 +48,19 @@ async function start() {
     fs.writeFile("./ggeConfig.json", ggeConfigExample)
     console.info("ggeConfig.json has been generated")
   }
-  const ggeConfig = JSON.parse((await fs.readFile("./ggeConfig.json")).toString())
+  
+  // Usar config-env.js para permitir variables de entorno en entornos de hosting
+  let ggeConfig;
+  try {
+    // Intentar cargar el módulo de configuración basado en variables de entorno
+    const envConfig = require('./config-env');
+    console.info("Usando configuración basada en variables de entorno")
+    ggeConfig = envConfig;
+  } catch (e) {
+    // Si falla, usar el método tradicional
+    console.info("Usando configuración de ggeConfig.json")
+    ggeConfig = JSON.parse((await fs.readFile("./ggeConfig.json")).toString())
+  }
 
   if (ggeConfig.cert) {
     await fs.access(ggeConfig.cert)

@@ -1,0 +1,33 @@
+{
+  "name": "GGE-BOT",
+  "description": "Bot para Good Game Empire",
+  "repository": "https://github.com/darrenthebozz/GGE-BOT",
+  "keywords": ["node", "discord", "bot"],
+  "env": {
+    "GAME_URL": {
+      "description": "URL del juego",
+      "value": "wss://ep-live-mz-int1-sk1-gb1-game.goodgamestudios.com/"
+    },
+    "GAME_SERVER": {
+      "description": "Servidor del juego",
+      "value": "EmpireEx_19"
+    },
+    "DISCORD_TOKEN": {
+      "description": "Token de Discord",
+      "required": true
+    },
+    "DISCORD_CLIENT_ID": {
+      "description": "ID de cliente de Discord",
+      "required": true
+    },
+    "NO_INTERNAL_WORKER": {
+      "description": "Deshabilitar trabajador interno",
+      "value": "true"
+    }
+  },
+  "buildpacks": [
+    {
+      "url": "heroku/nodejs"
+    }
+  ]
+}

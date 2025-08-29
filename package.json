@@ -5,7 +5,7 @@
     "discord.js": "^14.16.3",
     "emoji-dictionary": "^1.0.12",
     "events": "^3.3.0",
-    "express": "^4.21.1",
+    "express": "^4.21.2",
     "limiter": "^2.1.0",
     "playwright-core": "^1.52.0",
     "pretty-time": "^1.1.0",
@@ -17,5 +17,24 @@
     "turl": "^1.1.2",
     "undici": "^6.21.0",
     "ws": "^8.18.0"
-  }
+  },
+  "name": "gge-bot",
+  "version": "1.0.0",
+  "description": "DISCLAIMER: Use this at your own risk.",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node main.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/darrenthebozz/GGE-BOT.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/darrenthebozz/GGE-BOT/issues"
+  },
+  "homepage": "https://github.com/darrenthebozz/GGE-BOT#readme"
 }
