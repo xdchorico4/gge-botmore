@@ -38,7 +38,10 @@ Este documento contiene instrucciones específicas para desplegar tu bot en Rail
    DEFAULT_ALLIANCE_NAME=tu_alianza_por_defecto
    ```
 
-   > **Importante**: Reemplaza los valores de `DISCORD_TOKEN`, `DISCORD_CLIENT_ID` y `DEFAULT_ALLIANCE_NAME` con tus propios valores.
+   > **Importante**: 
+   > - Reemplaza los valores de `DISCORD_TOKEN`, `DISCORD_CLIENT_ID` y `DEFAULT_ALLIANCE_NAME` con tus propios valores.
+   > - Railway asignará automáticamente la variable `PORT` para tu aplicación. No necesitas configurarla manualmente.
+   > - Si necesitas configurar un puerto específico para el servidor WebSocket, puedes añadir la variable `WS_PORT`. Por defecto, usará `PORT + 1`.
 
 5. Railway iniciará automáticamente el despliegue. Puedes seguir el progreso en la pestaña "Deployments".
 
@@ -62,7 +65,17 @@ Si encuentras errores, verifica lo siguiente:
 
 3. **Error de fuente**: Si sigues teniendo problemas con las fuentes, puedes intentar instalar fuentes adicionales en el contenedor usando un script personalizado.
 
-4. **Reinicio del despliegue**: Si necesitas reiniciar el despliegue, puedes hacerlo desde la pestaña "Deployments" haciendo clic en "Redeploy".
+4. **Error "Connection refused"**: Si ves errores como "connection refused" en los logs HTTP y la aplicación aparece como "Crashed":
+   - Verifica que la aplicación esté utilizando la variable de entorno `PORT` que Railway proporciona automáticamente
+   - La aplicación ahora está configurada para usar `process.env.PORT` para el servidor HTTP/HTTPS principal
+   - El servidor WebSocket usará `process.env.PORT + 1` si está disponible
+   - Si sigues viendo este error, verifica los logs para asegurarte de que los servidores están iniciando correctamente
+   - Revisa los logs de construcción y despliegue para identificar errores durante la instalación
+   - Verifica que todas las dependencias se estén instalando correctamente
+
+5. **Reinicio del despliegue**: Si necesitas reiniciar el despliegue, puedes hacerlo desde la pestaña "Deployments" haciendo clic en "Redeploy".
+
+6. **Verificar logs completos**: Para diagnosticar problemas de conexión, revisa los logs completos en las pestañas "Build Logs", "Deploy Logs" y "HTTP Logs".
 
 ## Recursos adicionales
 

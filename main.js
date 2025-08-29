@@ -260,14 +260,21 @@ async function start() {
   });
   app.use(express.static('website'))
   let options = {}
+  // Usar el puerto proporcionado por Railway o usar puertos por defecto
+  const PORT = process.env.PORT || (certFound ? 443 : 80);
+  
   if (certFound) {
     options.key = fs.readFileSync(ggeConfig.privateKey, 'utf8'),
       options.cert = fs.readFileSync(ggeConfig.cert, 'utf8')
 
-    https.createServer(options, app).listen(443)
+    https.createServer(options, app).listen(PORT, () => {
+      console.log(`Servidor HTTPS escuchando en el puerto ${PORT}`)
+    })
   }
   else {
-    http.createServer(options, app).listen(80)
+    http.createServer(options, app).listen(PORT, () => {
+      console.log(`Servidor HTTP escuchando en el puerto ${PORT}`)
+    })
   }
 
   if (!ggeConfig.noInternalWorker) {
@@ -502,7 +509,12 @@ async function start() {
 
   let server = (certFound ? https : http).createServer(options)
 
-  server.listen(8882)
+  // Usar un puerto diferente para WebSocket, o usar el puerto principal + 1 si está en Railway
+  const WS_PORT = process.env.WS_PORT || process.env.PORT ? (parseInt(process.env.PORT) + 1) : 8882;
+  
+  server.listen(WS_PORT, () => {
+    console.log(`Servidor WebSocket escuchando en el puerto ${WS_PORT}`)
+  })
 
   let wss = new WebSocketServer({ server })
 
