@@ -69,6 +69,8 @@ Si encuentras errores, verifica lo siguiente:
    - Verifica que la aplicación esté utilizando la variable de entorno `PORT` que Railway proporciona automáticamente
    - La aplicación ahora está configurada para usar `process.env.PORT` para el servidor HTTP/HTTPS principal
    - El servidor WebSocket usará `process.env.PORT + 1` si está disponible
+   - Asegúrate de que los servidores estén escuchando en el host `0.0.0.0` y no solo en `localhost`
+   - Los servidores HTTP, HTTPS y WebSocket han sido configurados para escuchar en `0.0.0.0`
    - Si sigues viendo este error, verifica los logs para asegurarte de que los servidores están iniciando correctamente
    - Revisa los logs de construcción y despliegue para identificar errores durante la instalación
    - Verifica que todas las dependencias se estén instalando correctamente

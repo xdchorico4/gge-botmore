@@ -267,13 +267,13 @@ async function start() {
     options.key = fs.readFileSync(ggeConfig.privateKey, 'utf8'),
       options.cert = fs.readFileSync(ggeConfig.cert, 'utf8')
 
-    https.createServer(options, app).listen(PORT, () => {
-      console.log(`Servidor HTTPS escuchando en el puerto ${PORT}`)
+    https.createServer(options, app).listen(PORT, '0.0.0.0', () => {
+      console.log(`Servidor HTTPS escuchando en el puerto ${PORT} y host 0.0.0.0`)
     })
   }
   else {
-    http.createServer(options, app).listen(PORT, () => {
-      console.log(`Servidor HTTP escuchando en el puerto ${PORT}`)
+    http.createServer(options, app).listen(PORT, '0.0.0.0', () => {
+      console.log(`Servidor HTTP escuchando en el puerto ${PORT} y host 0.0.0.0`)
     })
   }
 
@@ -512,8 +512,8 @@ async function start() {
   // Usar un puerto diferente para WebSocket, o usar el puerto principal + 1 si está en Railway
   const WS_PORT = process.env.WS_PORT || process.env.PORT ? (parseInt(process.env.PORT) + 1) : 8882;
   
-  server.listen(WS_PORT, () => {
-    console.log(`Servidor WebSocket escuchando en el puerto ${WS_PORT}`)
+  server.listen(WS_PORT, '0.0.0.0', () => {
+    console.log(`Servidor WebSocket escuchando en el puerto ${WS_PORT} y host 0.0.0.0`)
   })
 
   let wss = new WebSocketServer({ server })
