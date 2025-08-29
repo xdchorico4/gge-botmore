@@ -80,12 +80,29 @@ async function start() {
   }
 
   if (!ggeConfig.fontPath) {
-    try {
-      await fs.access("C:\\Windows\\Fonts\\segoeui.ttf")
-      ggeConfig.fontPath = "C:\\Windows\\Fonts\\segoeui.ttf"
+    // Lista de posibles rutas de fuentes en diferentes sistemas operativos
+    const possibleFontPaths = [
+      "C:\\Windows\\Fonts\\segoeui.ttf",  // Windows
+      "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",  // Linux común
+      "/usr/share/fonts/TTF/DejaVuSans.ttf",  // Arch Linux
+      "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf"  // Ubuntu/Debian
+    ];
+    
+    let fontFound = false;
+    for (const fontPath of possibleFontPaths) {
+      try {
+        await fs.access(fontPath);
+        ggeConfig.fontPath = fontPath;
+        fontFound = true;
+        console.log(`Fuente encontrada en: ${fontPath}`);
+        break;
+      } catch (err) {
+        // Continuar con la siguiente ruta
+      }
     }
-    catch (e) {
-      console.warn(e)
+    
+    if (!fontFound) {
+      console.warn("No se pudo encontrar ninguna fuente compatible en el sistema")
       console.warn("Could not setup internalWorker")
       ggeConfig.noInternalWorker = true
     }
