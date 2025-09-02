@@ -1,6 +1,7 @@
 const https = require('node:https')
 const http = require('node:http')
 const fs = require('fs/promises')
+const path = require('path')
 const express = require("express")
 const bodyParser = require('body-parser');
 const cookieParser = require("cookie-parser")
@@ -227,7 +228,10 @@ async function start() {
   const app = express()
   app.use(bodyParser.urlencoded({ extended: true }))
   app.use(cookieParser())
-  app.get("/", (_, res) => res.redirect('/index.html'))
+  app.get("/", (_, res) => res.sendFile(path.join(__dirname, 'website', 'index.html')))
+  app.get("/signin.html", (_, res) => res.sendFile(path.join(__dirname, 'website', 'signin.html')))
+  app.get("/signup.html", (_, res) => res.sendFile(path.join(__dirname, 'website', 'signup.html')))
+  app.get("/config.html", (_, res) => res.sendFile(path.join(__dirname, 'website', 'config.html')))
   app.post("/api", bodyParser.json(), async (req, res) => {
     let json = req.body
 
