@@ -1,43 +1,65 @@
-# Overview
+# GGE-Bot - Good Game Empire Bot
 
-GGE-BOT is a Discord bot and web application designed for the game Good Game Empire. The bot provides game statistics, rankings, and automated gameplay features through Discord slash commands and a web interface. It connects to the game's WebSocket API to monitor game events and can perform automated actions like attacking fortresses, managing resources, and tracking alliance activities.
+## Overview
+This is a comprehensive bot application for Good Game Empire, featuring a web-based dashboard for bot management and configuration. The application provides automated gameplay functionality through worker threads and includes a complete web interface for user management.
 
-The application consists of multiple components: a Discord bot for user interaction, a web server for bot management, WebSocket connections to the game servers, and various plugins for automated gameplay features. It's designed to run 24/7 on hosting platforms and includes comprehensive deployment configurations for services like Railway and Render.
+## Architecture
+- **Backend**: Node.js with Express.js server
+- **Frontend**: Static HTML/CSS/JavaScript with WebSocket communication
+- **Database**: SQLite3 for user management
+- **Browser Automation**: Playwright (Firefox) for game interaction
+- **Real-time Communication**: WebSockets for live updates
 
-# User Preferences
+## Key Features
+- User authentication and management system
+- Bot configuration and control dashboard
+- Plugin system for extensible functionality
+- Real-time WebSocket communication
+- Game item data synchronization
+- Internal worker for automated tasks
+- Discord integration support
 
-Preferred communication style: Simple, everyday language.
+## Current Configuration
+- **Main Server**: Port 5000 (HTTP)
+- **WebSocket Server**: Port 5001
+- **Database**: SQLite (`user.db`)
+- **Environment**: Production-ready with environment variable support
+- **Mode**: Web-only (internal worker disabled for hosting environment)
 
-# System Architecture
+## Project Structure
+- `main.js`: Main server application and API endpoints
+- `ggebot.js`: Bot worker logic
+- `config-env.js`: Environment variable configuration
+- `website/`: Frontend assets and HTML pages
+- `plugins/`: Plugin system modules
+- `items/`: Game data cache
+- `package.json`: Node.js dependencies
 
-## Frontend Architecture
-- **Express.js Web Server**: Provides a web interface for managing bot instances and configurations
-- **Static File Serving**: Serves HTML, CSS, and JavaScript files for the web dashboard
-- **Cookie-based Authentication**: Uses cookie-parser for session management
-- **Body Parser**: Handles form submissions and API requests
+## Recent Changes
+- Configured for Replit environment with proper port binding (5000)
+- Set up environment variable support for hosting platforms
+- Installed all required dependencies including Playwright
+- Disabled internal worker mode for web hosting compatibility
+- Configured WebSocket server on separate port (5001)
 
-## Backend Architecture
-- **Node.js Worker Threads**: Uses worker threads to isolate bot instances and prevent crashes from affecting the main application
-- **WebSocket Client**: Connects to Good Game Empire's game servers using the `ws` library
-- **Discord.js Integration**: Implements Discord bot functionality with slash commands
-- **Plugin System**: Modular architecture allowing different gameplay automation features
-- **Event-Driven Architecture**: Uses EventEmitter for handling game events and responses
+## Dependencies
+- Express.js for web server
+- Playwright for browser automation
+- SQLite3 for database
+- WebSocket (ws) for real-time communication
+- Discord.js for Discord integration
+- Various utility libraries
 
-## Data Storage Solutions
-- **SQLite Database**: Local database using sqlite3 for storing user data, logs, and bot configurations
-- **JSON Configuration Files**: Stores game data, items, buildings, units, and other static game information
-- **File-based Logging**: Message buffering system for tracking bot activities and errors
+## Environment Variables
+- `PORT`: Server port (defaults to 5000 in this environment)
+- `GAME_URL`: Game WebSocket URL
+- `GAME_SERVER`: Game server identifier
+- `DISCORD_TOKEN`: Discord bot token
+- `DISCORD_CLIENT_ID`: Discord application ID
+- `NO_INTERNAL_WORKER`: Disable internal worker (true for hosting)
 
-## Authentication and Authorization
-- **Discord OAuth**: Uses Discord bot tokens and client IDs for authentication
-- **Game Authentication**: Handles Good Game Empire login credentials and session management
-- **Role-based Access**: Different permission levels for bot management and usage
-
-## External Dependencies
-- **Good Game Empire WebSocket API**: Primary game server connection for real-time data
-- **Discord API**: For bot commands and user interaction
-- **Playwright**: Web automation for browser-based game interactions and CAPTCHA handling
-- **Sharp**: Image processing library for generating battle layouts and graphics
-- **PureImage**: Canvas-like image generation for creating game visualizations
-
-The architecture supports both development and production environments with automatic configuration detection. It includes comprehensive error handling, automatic reconnection logic, and deployment-ready configurations for cloud hosting platforms.
+## Notes
+- Application runs in web-only mode in hosted environments
+- Internal worker disabled to avoid browser dependencies in production
+- Font detection configured for Linux environment
+- Game data automatically synced from official API
