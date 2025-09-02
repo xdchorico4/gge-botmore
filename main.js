@@ -181,8 +181,17 @@ async function start() {
       globalThis.window.grecaptcha.ready(resolve)))
   }
 
-  await Promise.all([getItemsJSON(), startPage()])
+  if (!ggeConfig.noInternalWorker) {
+    await Promise.all([getItemsJSON(), startPage()])
+  } else {
+    await getItemsJSON()
+    console.log("Skipping browser startup - running in web-only mode")
+  }
   let captchaToken = () => {
+    if (!frame) {
+      console.warn("Browser not initialized - captcha functionality disabled")
+      return Promise.resolve(null)
+    }
     return frame.evaluate(() => new Promise(resolve => {
       let e = "6Lc7w34oAAAAAFKhfmln41m96VQm4MNqEdpCYm-k";
       globalThis.window.grecaptcha.execute(e, {
@@ -196,22 +205,22 @@ async function start() {
   let userDatabase = new sqlite3.Database("./user.db", sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE)
   userDatabase.exec(
     `CREATE TABLE IF NOT EXISTS "Users" (
-	"username"	TEXT NOT NULL UNIQUE,
-	"passwordHash" BLOB NOT NULL,
+        "username"      TEXT NOT NULL UNIQUE,
+        "passwordHash" BLOB NOT NULL,
   "passwordSalt" INTEGER NOT NULL,
   "uuid" TEXT UNIQUE,
-	"privilege"	INTEGER
+        "privilege"     INTEGER
 );
 `)
   userDatabase.exec(
     `CREATE TABLE IF NOT EXISTS "SubUsers" (
-	"id"	INTEGER,
-	"uuid"	TEXT NOT NULL,
-	"name"	TEXT NOT NULL,
-	"pass"	TEXT NOT NULL,
-	"plugins"	TEXT,
-	"state"	INTEGER,
-	PRIMARY KEY("id" AUTOINCREMENT)
+        "id"    INTEGER,
+        "uuid"  TEXT NOT NULL,
+        "name"  TEXT NOT NULL,
+        "pass"  TEXT NOT NULL,
+        "plugins"       TEXT,
+        "state" INTEGER,
+        PRIMARY KEY("id" AUTOINCREMENT)
 );
 `)
 
