@@ -20,8 +20,6 @@ async function saveConfig(event) {
     discordClientId: configFormElement.querySelector("#discordClientId").value,
     internalWorkerName: configFormElement.querySelector("#internalWorkerName").value,
     internalWorkerPass: configFormElement.querySelector("#internalWorkerPass").value,
-    defaultAllianceName: configFormElement.querySelector("#defaultAllianceName").value,
-    signupToken: configFormElement.querySelector("#signupToken").value,
     noInternalWorker: configFormElement.querySelector("#noInternalWorker").checked
   };
 
@@ -81,8 +79,6 @@ async function loadConfig() {
       document.getElementById("discordClientId").value = config.data.discordClientId || "";
       document.getElementById("internalWorkerName").value = config.data.internalWorkerName || "";
       document.getElementById("internalWorkerPass").value = config.data.internalWorkerPass || "";
-      document.getElementById("defaultAllianceName").value = config.data.defaultAllianceName || "";
-      document.getElementById("signupToken").value = config.data.signupToken || "";
       document.getElementById("noInternalWorker").checked = config.data.noInternalWorker || false;
       
       configInfoBannerElement.innerHTML = "✅ Configuración cargada";
