@@ -40,12 +40,12 @@ async function saveConfig(event) {
     var result = await response.json();
     
     if (result.success) {
-      configInfoBannerElement.innerHTML = "✅ Configuración guardada exitosamente. El servidor se reiniciará automáticamente.";
+      configInfoBannerElement.innerHTML = "✅ Configuración guardada exitosamente. Algunos cambios pueden requerir reiniciar el servidor.";
       configInfoBannerElement.style.color = "#4CAF50";
       
       // Esperar un momento y recargar la página para mostrar la nueva configuración
       setTimeout(() => {
-        window.location.reload();
+        loadConfig(); // Recargar solo la configuración en lugar de toda la página
       }, 2000);
     } else {
       configInfoBannerElement.innerHTML = "❌ Error al guardar: " + (result.error || "Error desconocido");

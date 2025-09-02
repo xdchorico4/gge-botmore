@@ -329,11 +329,9 @@ async function start() {
         message: "Configuración guardada exitosamente" 
       }));
       
-      // Reiniciar el proceso después de un delay para permitir que la respuesta se envíe
-      setTimeout(() => {
-        console.log("Reiniciando aplicación debido a cambio de configuración...");
-        process.exit(0);
-      }, 1000);
+      // Notificar que la configuración se guardó exitosamente
+      console.log("✅ Configuración guardada exitosamente en ggeConfig.json");
+      console.log("⚠️  Nota: Para que algunos cambios tomen efecto, será necesario reiniciar el servidor manualmente.");
       
     } catch (error) {
       console.error("Error guardando configuración:", error);
