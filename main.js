@@ -226,6 +226,16 @@ async function start() {
 `)
 
   const app = express()
+  
+  // Configurar headers de seguridad
+  app.use((req, res, next) => {
+    res.setHeader('Content-Security-Policy', "default-src 'self' 'unsafe-inline' 'unsafe-eval' ws: wss: data: blob:; connect-src 'self' ws: wss:; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:;")
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate')
+    res.setHeader('Pragma', 'no-cache')
+    res.setHeader('Expires', '0')
+    next()
+  })
+  
   app.use(bodyParser.urlencoded({ extended: true }))
   app.use(cookieParser())
   app.get("/", (_, res) => res.sendFile(path.join(__dirname, 'website', 'index.html')))
