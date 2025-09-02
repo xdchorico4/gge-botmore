@@ -159,6 +159,7 @@
         </div>
     </div>
 
+    <script src="js/websocket-config.js"></script>
     <script>
         let ws = null;
         let uuid = null;
@@ -177,48 +178,52 @@
             return null;
         }
 
-        // Conectar WebSocket
-        function connectWebSocket() {
-            const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
-            const wsUrl = `${protocol}//${window.location.hostname}:5001/`;
-            
-            log(`Intentando conectar a: ${wsUrl}`);
-            
-            ws = new WebSocket(wsUrl);
-            
-            ws.onopen = function() {
-                log('WebSocket conectado');
-                updateStatus('connected');
+        // Conectar WebSocket usando la configuración dinámica
+        async function connectWebSocket() {
+            try {
+                const wsUrl = await getWebSocketConfig();
+                log(`Intentando conectar a: ${wsUrl}`);
                 
-                // Autenticar
-                uuid = getUUID();
-                if (uuid) {
-                    sendMessage(0, 0, uuid); // ActionType.GetUUID = 0
-                } else {
-                    log('No se encontró UUID. Redirigiendo al login...');
-                    window.location.href = '/signin.html';
-                }
-            };
-            
-            ws.onmessage = function(event) {
-                try {
-                    const [error, action, data] = JSON.parse(event.data);
-                    handleMessage(error, action, data);
-                } catch (e) {
-                    log('Error parsing message: ' + e.message);
-                }
-            };
-            
-            ws.onclose = function() {
-                log('WebSocket desconectado');
-                updateStatus('disconnected');
-                setTimeout(connectWebSocket, 3000); // Reintentar en 3 segundos
-            };
-            
-            ws.onerror = function(error) {
-                log('WebSocket error: ' + error);
-                updateStatus('disconnected');
-            };
+                ws = new WebSocket(wsUrl);
+                
+                ws.onopen = function() {
+                    log('WebSocket conectado');
+                    updateStatus('connected');
+                    
+                    // Autenticar
+                    uuid = getUUID();
+                    if (uuid) {
+                        sendMessage(0, 0, uuid); // ActionType.GetUUID = 0
+                    } else {
+                        log('No se encontró UUID. Se requiere iniciar sesión.');
+                        updateStatus('disconnected');
+                        ws.close();
+                    }
+                };
+                
+                ws.onmessage = function(event) {
+                    try {
+                        const [error, action, data] = JSON.parse(event.data);
+                        handleMessage(error, action, data);
+                    } catch (e) {
+                        log('Error parsing message: ' + e.message);
+                    }
+                };
+                
+                ws.onclose = function() {
+                    log('WebSocket desconectado');
+                    updateStatus('disconnected');
+                    setTimeout(connectWebSocket, 3000); // Reintentar en 3 segundos
+                };
+                
+                ws.onerror = function(error) {
+                    log('WebSocket error: ' + error);
+                    updateStatus('disconnected');
+                };
+            } catch (error) {
+                log('Error obteniendo configuración WebSocket: ' + error.message);
+                setTimeout(connectWebSocket, 5000);
+            }
         }
 
         // Enviar mensaje
@@ -388,8 +393,14 @@
             // Verificar si hay UUID
             uuid = getUUID();
             if (!uuid) {
-                log('No se encontró UUID. Redirigiendo al login...');
-                window.location.href = '/signin.html';
+                log('No se encontró UUID. Por favor inicia sesión primero.');
+                // Mostrar mensaje de login en lugar de redirigir automáticamente
+                const header = document.querySelector('.header');
+                header.innerHTML += `
+                    <div style="background-color: #8b0000; padding: 10px; border-radius: 5px; margin-top: 10px;">
+                        <p>No has iniciado sesión. <a href="/signin.html" style="color: #14a085; text-decoration: underline;">Haz clic aquí para iniciar sesión</a></p>
+                    </div>
+                `;
                 return;
             }
             

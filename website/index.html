@@ -195,8 +195,9 @@
                     if (uuid) {
                         sendMessage(0, 0, uuid); // ActionType.GetUUID = 0
                     } else {
-                        log('No se encontró UUID. Redirigiendo al login...');
-                        window.location.href = '/signin.html';
+                        log('No se encontró UUID. Se requiere iniciar sesión.');
+                        updateStatus('disconnected');
+                        ws.close();
                     }
                 };
                 
@@ -392,8 +393,14 @@
             // Verificar si hay UUID
             uuid = getUUID();
             if (!uuid) {
-                log('No se encontró UUID. Redirigiendo al login...');
-                window.location.href = '/signin.html';
+                log('No se encontró UUID. Por favor inicia sesión primero.');
+                // Mostrar mensaje de login en lugar de redirigir automáticamente
+                const header = document.querySelector('.header');
+                header.innerHTML += `
+                    <div style="background-color: #8b0000; padding: 10px; border-radius: 5px; margin-top: 10px;">
+                        <p>No has iniciado sesión. <a href="/signin.html" style="color: #14a085; text-decoration: underline;">Haz clic aquí para iniciar sesión</a></p>
+                    </div>
+                `;
                 return;
             }
             
