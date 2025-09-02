@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GGE Bot Dashboard</title>
+    <script src="js/i18n.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -147,32 +148,56 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>GGE Bot Dashboard</h1>
-            <div id="websocket-status" class="status disconnected">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h1 data-i18n="dashboard.title">GGE Bot Dashboard</h1>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <label for="language-select">🌐 Idioma:</label>
+                    <select id="language-select" onchange="changeLanguage(this.value)" style="background: #333; color: white; border: 1px solid #555; padding: 5px; border-radius: 4px;">
+                        <option value="es">Español</option>
+                        <option value="en">English</option>
+                        <option value="fr">Français</option>
+                    </select>
+                </div>
+            </div>
+            <div id="websocket-status" class="status disconnected" data-i18n="status.disconnected">
                 WebSocket: Desconectado
             </div>
         </div>
 
         <div class="section">
-            <h2>Bots</h2>
+            <h2 data-i18n="bots.title">Gestión de Bots</h2>
+            
+            <!-- Selector de Bot -->
+            <div style="margin-bottom: 20px; padding: 15px; background: #2a2a2a; border-radius: 8px;">
+                <label for="bot-selector" style="display: block; margin-bottom: 10px; font-weight: bold;" data-i18n="bots.select">Seleccionar Bot:</label>
+                <select id="bot-selector" style="width: 100%; padding: 10px; background: #333; color: white; border: 1px solid #555; border-radius: 4px; margin-bottom: 15px;">
+                    <option value="" data-i18n="bots.select">Seleccionar Bot</option>
+                </select>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn" onclick="startSelectedBot()" data-i18n="bots.action.start">Iniciar</button>
+                    <button class="btn" onclick="stopSelectedBot()" data-i18n="bots.action.stop">Detener</button>
+                    <button class="btn danger" onclick="deleteSelectedBot()" data-i18n="bots.action.delete">Eliminar</button>
+                </div>
+            </div>
+            
             <div class="form-group">
-                <label>Nombre del Bot:</label>
-                <input type="text" id="bot-name" placeholder="Nombre del bot">
+                <label data-i18n="bots.name">Nombre del Bot:</label>
+                <input type="text" id="bot-name" data-i18n-placeholder="bots.name" placeholder="Nombre del bot">
             </div>
             <div class="form-group">
-                <label>Contraseña del Bot:</label>
-                <input type="password" id="bot-password" placeholder="Contraseña">
+                <label data-i18n="bots.password">Contraseña del Bot:</label>
+                <input type="password" id="bot-password" data-i18n-placeholder="bots.password" placeholder="Contraseña">
             </div>
-            <button class="btn" onclick="addBot()">Agregar Bot</button>
+            <button class="btn" onclick="addBot()" data-i18n="bots.add">Agregar Bot</button>
             
             <table class="plugins-table">
                 <thead>
                     <tr>
-                        <th>Nombre</th>
-                        <th>Plugins</th>
-                        <th>Conexión</th>
-                        <th>Estado</th>
-                        <th>Acciones</th>
+                        <th data-i18n="bots.table.name">Nombre</th>
+                        <th data-i18n="bots.table.plugins">Plugins</th>
+                        <th data-i18n="bots.table.connection">Conexión</th>
+                        <th data-i18n="bots.table.status">Estado</th>
+                        <th data-i18n="bots.table.actions">Acciones</th>
                     </tr>
                 </thead>
                 <tbody id="bots-table">
@@ -186,7 +211,7 @@
         </div>
 
         <div class="section">
-            <h2>Plugins Disponibles</h2>
+            <h2 data-i18n="plugins.title">Plugins Disponibles</h2>
             <div id="plugins-grid" class="plugins-grid">
                 <div style="text-align: center; padding: 20px; grid-column: 1 / -1;">
                     Cargando plugins...
@@ -195,7 +220,7 @@
         </div>
 
         <div class="section">
-            <h2>Logs</h2>
+            <h2 data-i18n="logs.title">Logs</h2>
             <div id="logs" class="logs">
                 Conectando...
             </div>
@@ -316,29 +341,36 @@
         // Renderizar tabla de bots
         function renderBots() {
             const tbody = document.getElementById('bots-table');
+            const selector = document.getElementById('bot-selector');
             
             if (bots.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px;">No hay bots configurados</td></tr>';
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; padding: 20px;">${t('bots.none_configured')}</td></tr>`;
+                selector.innerHTML = `<option value="">${t('bots.select')}</option>`;
                 return;
             }
+            
+            // Actualizar selector de bots
+            const currentSelected = selector.value;
+            selector.innerHTML = `<option value="">${t('bots.select')}</option>` + 
+                bots.map(bot => `<option value="${bot.id}" ${bot.id == currentSelected ? 'selected' : ''}>${bot.name || 'Sin nombre'}</option>`).join('');
             
             tbody.innerHTML = bots.map(bot => {
                 const activePlugins = Object.keys(bot.plugins || {}).filter(key => bot.plugins[key]?.state).length;
                 const totalPlugins = Object.keys(bot.plugins || {}).length;
                 const statusColor = bot.state === 1 ? '#0d7377' : '#666';
-                const connectionStatus = bot.state === 1 ? 'En juego 🎮' : 'Desconectado ⭕';
+                const connectionStatus = bot.state === 1 ? t('bots.status.ingame') : t('bots.status.disconnected');
                 
                 return `
                     <tr>
                         <td>${bot.name || 'Sin nombre'}</td>
                         <td>${activePlugins}/${totalPlugins} activos</td>
                         <td style="color: ${statusColor}; font-weight: bold;">${connectionStatus}</td>
-                        <td>${bot.state === 1 ? 'Funcional' : 'Inactivo'}</td>
+                        <td>${bot.state === 1 ? t('bots.status.functional') : t('bots.status.inactive')}</td>
                         <td>
                             <button class="btn" onclick="toggleBot(${bot.id})">
-                                ${bot.state === 1 ? 'Detener' : 'Iniciar'}
+                                ${bot.state === 1 ? t('bots.action.stop') : t('bots.action.start')}
                             </button>
-                            <button class="btn danger" onclick="removeBot(${bot.id})">Eliminar</button>
+                            <button class="btn danger" onclick="removeBot(${bot.id})">${t('bots.action.delete')}</button>
                         </td>
                     </tr>
                 `;
@@ -350,7 +382,7 @@
             const grid = document.getElementById('plugins-grid');
             
             if (plugins.length === 0) {
-                grid.innerHTML = '<div style="text-align: center; padding: 20px; grid-column: 1 / -1;">No hay plugins disponibles</div>';
+                grid.innerHTML = `<div style="text-align: center; padding: 20px; grid-column: 1 / -1;">${t('plugins.none_available')}</div>`;
                 return;
             }
             
@@ -358,7 +390,7 @@
                 const options = plugin.pluginOptions || [];
                 const optionsHtml = options.length > 0 ? `
                     <div class="plugin-options">
-                        <strong>Opciones:</strong><br>
+                        <strong>${t('plugins.options')}</strong><br>
                         ${options.map(opt => `
                             <div class="option-item">
                                 • ${opt.label} (${opt.type})
@@ -372,10 +404,10 @@
                     <div class="plugin-card">
                         <div class="plugin-header">
                             <div class="plugin-name">${plugin.name || plugin.key}</div>
-                            <div class="plugin-status inactive">Disponible</div>
+                            <div class="plugin-status inactive">${t('plugins.status.available')}</div>
                         </div>
                         <div class="plugin-description">
-                            ${plugin.description || 'Sin descripción disponible'}
+                            ${plugin.description || t('plugins.no_description')}
                         </div>
                         ${optionsHtml}
                     </div>
@@ -388,10 +420,10 @@
             const statusElement = document.getElementById('websocket-status');
             if (status === 'connected') {
                 statusElement.className = 'status connected';
-                statusElement.textContent = 'WebSocket: Conectado';
+                statusElement.textContent = t('status.connected');
             } else {
                 statusElement.className = 'status disconnected';
-                statusElement.textContent = 'WebSocket: Desconectado';
+                statusElement.textContent = t('status.disconnected');
             }
         }
 
@@ -403,13 +435,44 @@
             logs.scrollTop = logs.scrollHeight;
         }
 
+        // Funciones para manejar el selector de bots
+        function startSelectedBot() {
+            const botId = parseInt(document.getElementById('bot-selector').value);
+            if (!botId) {
+                alert(t('validation.select_bot'));
+                return;
+            }
+            toggleBot(botId);
+        }
+
+        function stopSelectedBot() {
+            const botId = parseInt(document.getElementById('bot-selector').value);
+            if (!botId) {
+                alert(t('validation.select_bot'));
+                return;
+            }
+            const bot = bots.find(b => b.id === botId);
+            if (bot && bot.state === 1) {
+                toggleBot(botId);
+            }
+        }
+
+        function deleteSelectedBot() {
+            const botId = parseInt(document.getElementById('bot-selector').value);
+            if (!botId) {
+                alert(t('validation.select_bot'));
+                return;
+            }
+            removeBot(botId);
+        }
+
         // Agregar nuevo bot
         function addBot() {
             const name = document.getElementById('bot-name').value;
             const password = document.getElementById('bot-password').value;
             
             if (!name || !password) {
-                alert('Por favor ingresa nombre y contraseña');
+                alert(t('validation.name_password_required'));
                 return;
             }
             
@@ -426,8 +489,8 @@
             document.getElementById('bot-name').value = '';
             document.getElementById('bot-password').value = '';
             
-            log(`🤖 Agregando bot: ${name}`);
-            log(`⚙️ Configurando plugins por defecto...`);
+            log(t('logs.adding_bot', {name: name}));
+            log(t('logs.configuring_plugins'));
         }
 
         // Alternar estado del bot
@@ -437,24 +500,24 @@
                 bot.state = bot.state === 1 ? 0 : 1;
                 sendMessage(0, 2, bot); // SetUser action
                 if (bot.state === 1) {
-                    log(`🚀 Iniciando bot: ${bot.name}`);
-                    log(`🔗 Conectando al servidor de juego...`);
-                    log(`🎮 Entrando al juego Good Game Empire...`);
+                    log(t('logs.starting_bot', {name: bot.name}));
+                    log(t('logs.connecting_game'));
+                    log(t('logs.entering_game'));
                 } else {
-                    log(`⏹️ Deteniendo bot: ${bot.name}`);
-                    log(`🚪 Desconectando del juego...`);
+                    log(t('logs.stopping_bot', {name: bot.name}));
+                    log(t('logs.disconnecting'));
                 }
             }
         }
 
         // Eliminar bot
         function removeBot(botId) {
-            if (confirm('¿Estás seguro de que quieres eliminar este bot?')) {
+            if (confirm(t('bots.confirm_delete'))) {
                 const bot = bots.find(b => b.id === botId);
                 if (bot) {
                     sendMessage(0, 3, bot); // RemoveUser action
-                    log(`🗑️ Eliminando bot: ${bot.name}`);
-                    log(`🚪 Cerrando conexiones...`);
+                    log(t('logs.deleting_bot', {name: bot.name}));
+                    log(t('logs.closing_connections'));
                 }
             }
         }
@@ -468,8 +531,15 @@
             }
         }
 
-        // Inicializar cuando se carga la página
+        // Inicializar idioma al cargar la página
         document.addEventListener('DOMContentLoaded', function() {
+            // Configurar idioma guardado
+            const savedLanguage = localStorage.getItem('ggeBotLanguage') || 'es';
+            document.getElementById('language-select').value = savedLanguage;
+            if (typeof updatePageTexts === 'function') {
+                updatePageTexts();
+            }
+            
             // Verificar si hay UUID
             uuid = getUUID();
             if (!uuid) {
