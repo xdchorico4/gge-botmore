@@ -1,0 +1,54 @@
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script src="js/config.js"></script>
+    <link rel="stylesheet" href="css/index.css">
+    <title>Bot Configuration</title>
+</head>
+
+<div class="front-panel-anchor">
+    <div class="front-panel" style="height: auto; min-height: 600px;">
+        <div class="banner">
+            <a href="index.html" style="text-align: left; margin:10px">← Volver</a>
+        </div>
+        <img src="img/ashes.png" class="ashes-logo" alt="">
+        <h2>Configuración del Bot</h2>
+        <form id="config-form">
+            <div class="input-field-container">
+                <div class="login-info-banner" id="config-info-banner"></div>
+                
+                <h3>Configuración del Juego</h3>
+                <li><input type="text" class="input-field" id="gameURL" placeholder="URL del Servidor del Juego"></li>
+                <li><input type="text" class="input-field" id="gameServer" placeholder="Nombre del Servidor"></li>
+                
+                <h3>Configuración de Discord</h3>
+                <li><input type="text" class="input-field" id="discordToken" placeholder="Token del Bot de Discord"></li>
+                <li><input type="text" class="input-field" id="discordClientId" placeholder="ID del Cliente de Discord"></li>
+                
+                <h3>Configuración del Worker</h3>
+                <li><input type="text" class="input-field" id="internalWorkerName" placeholder="Nombre del Worker"></li>
+                <li><input type="password" class="input-field" id="internalWorkerPass" placeholder="Contraseña del Worker"></li>
+                <li><input type="text" class="input-field" id="defaultAllianceName" placeholder="Nombre de la Alianza"></li>
+                
+                <h3>Otras Configuraciones</h3>
+                <li><input type="text" class="input-field" id="signupToken" placeholder="Token de Registro"></li>
+                
+                <li>
+                    <div class="checkbox">
+                        <input type="checkbox" id="noInternalWorker">
+                        <span>Desactivar Worker Interno (Solo Web)</span>
+                    </div>
+                </li>
+                
+                <li><button type="submit" class="signin-signout">Guardar Configuración</button></li>
+                <li><button type="button" class="signin-signout" id="load-config" style="background-color: #4CAF50;">Cargar Configuración Actual</button></li>
+            </div>
+        </form>
+        <div class="footer">
+            <div><a href="index.html">Volver al Panel Principal</a></div>
+        </div>
+    </div>
+</div>
+
+</html>

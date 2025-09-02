@@ -267,6 +267,80 @@ async function start() {
       })
     }
   });
+  
+  // Endpoint para obtener la configuración actual
+  app.get("/api/config", (req, res) => {
+    res.setHeader('Content-Type', 'application/json');
+    try {
+      // Enviar la configuración actual (sin datos sensibles completos)
+      const configResponse = {
+        gameURL: ggeConfig.gameURL || "",
+        gameServer: ggeConfig.gameServer || "",
+        discordToken: ggeConfig.discordToken ? "***CONFIGURADO***" : "",
+        discordClientId: ggeConfig.discordClientId || "",
+        internalWorkerName: ggeConfig.internalWorkerName || "",
+        internalWorkerPass: ggeConfig.internalWorkerPass ? "***CONFIGURADO***" : "",
+        defaultAllianceName: ggeConfig.defaultAllianceName || "",
+        signupToken: ggeConfig.signupToken ? "***CONFIGURADO***" : "",
+        noInternalWorker: ggeConfig.noInternalWorker || false
+      };
+      res.send(JSON.stringify({ success: true, data: configResponse }));
+    } catch (error) {
+      res.send(JSON.stringify({ success: false, error: error.message }));
+    }
+  });
+
+  // Endpoint para guardar nueva configuración
+  app.post("/api/config", bodyParser.json(), async (req, res) => {
+    res.setHeader('Content-Type', 'application/json');
+    try {
+      const newConfig = req.body;
+      
+      // Validar datos requeridos
+      if (!newConfig.gameURL && !newConfig.gameServer) {
+        return res.send(JSON.stringify({ 
+          success: false, 
+          error: "Se requiere al menos la URL del juego o el servidor" 
+        }));
+      }
+
+      // Actualizar configuración
+      if (newConfig.gameURL) ggeConfig.gameURL = newConfig.gameURL;
+      if (newConfig.gameServer) ggeConfig.gameServer = newConfig.gameServer;
+      if (newConfig.discordToken && newConfig.discordToken !== "***CONFIGURADO***") {
+        ggeConfig.discordToken = newConfig.discordToken;
+      }
+      if (newConfig.discordClientId) ggeConfig.discordClientId = newConfig.discordClientId;
+      if (newConfig.internalWorkerName) ggeConfig.internalWorkerName = newConfig.internalWorkerName;
+      if (newConfig.internalWorkerPass && newConfig.internalWorkerPass !== "***CONFIGURADO***") {
+        ggeConfig.internalWorkerPass = newConfig.internalWorkerPass;
+      }
+      if (newConfig.defaultAllianceName) ggeConfig.defaultAllianceName = newConfig.defaultAllianceName;
+      if (newConfig.signupToken && newConfig.signupToken !== "***CONFIGURADO***") {
+        ggeConfig.signupToken = newConfig.signupToken;
+      }
+      ggeConfig.noInternalWorker = newConfig.noInternalWorker || false;
+
+      // Guardar configuración en archivo
+      await fs.writeFile("./ggeConfig.json", JSON.stringify(ggeConfig, null, 2));
+      
+      res.send(JSON.stringify({ 
+        success: true, 
+        message: "Configuración guardada exitosamente" 
+      }));
+      
+      // Reiniciar el proceso después de un delay para permitir que la respuesta se envíe
+      setTimeout(() => {
+        console.log("Reiniciando aplicación debido a cambio de configuración...");
+        process.exit(0);
+      }, 1000);
+      
+    } catch (error) {
+      console.error("Error guardando configuración:", error);
+      res.send(JSON.stringify({ success: false, error: error.message }));
+    }
+  });
+
   app.use(express.static('website'))
   let options = {}
   // Usar el puerto proporcionado por Railway o usar puertos por defecto
