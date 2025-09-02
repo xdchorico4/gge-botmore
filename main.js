@@ -232,6 +232,13 @@ async function start() {
   app.get("/signin.html", (_, res) => res.sendFile(path.join(__dirname, 'website', 'signin.html')))
   app.get("/signup.html", (_, res) => res.sendFile(path.join(__dirname, 'website', 'signup.html')))
   app.get("/config.html", (_, res) => res.sendFile(path.join(__dirname, 'website', 'config.html')))
+  
+  // Endpoint para obtener configuración del WebSocket
+  app.get("/api/ws-config", (req, res) => {
+    res.setHeader('Content-Type', 'application/json');
+    const wsPort = process.env.WS_PORT || (process.env.PORT ? (parseInt(process.env.PORT) + 1) : 8883);
+    res.send(JSON.stringify({ wsPort: wsPort, domain: req.get('Host') }));
+  });
   app.post("/api", bodyParser.json(), async (req, res) => {
     let json = req.body
 
@@ -595,7 +602,7 @@ async function start() {
   let server = (certFound ? https : http).createServer(options)
 
   // Usar un puerto diferente para WebSocket, o usar el puerto principal + 1 si está en Railway
-  const WS_PORT = process.env.WS_PORT || process.env.PORT ? (parseInt(process.env.PORT) + 1) : 8882;
+  const WS_PORT = process.env.WS_PORT || (process.env.PORT ? (parseInt(process.env.PORT) + 1) : 8883);
   
   server.listen(WS_PORT, '0.0.0.0', () => {
     console.log(`Servidor WebSocket escuchando en el puerto ${WS_PORT} y host 0.0.0.0`)
