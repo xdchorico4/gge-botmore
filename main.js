@@ -254,7 +254,7 @@ async function start() {
       })
     }
     else if (json.id == 1) {
-      if (json.token != ggeConfig.signupToken)
+      if (ggeConfig.signupToken && ggeConfig.signupToken !== "" && json.token != ggeConfig.signupToken)
         return res.send(JSON.stringify({ id: 0, r: 1, error: "Invalid Sign up details." }))
 
       var salt = crypto.randomBytes(256)
