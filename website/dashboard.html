@@ -171,10 +171,12 @@
             const cookies = document.cookie.split(';');
             for (let cookie of cookies) {
                 const [name, value] = cookie.trim().split('=');
-                if (name === 'uuid') {
+                if (name === 'uuid' && value && value !== 'undefined') {
+                    console.log('UUID encontrado:', value);
                     return value;
                 }
             }
+            console.log('No se encontró UUID válido en cookies:', document.cookie);
             return null;
         }
 

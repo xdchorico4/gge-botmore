@@ -34,11 +34,11 @@ async function login(event) {
       return false
     }
     if(!isChecked)
-      document.cookie = `uuid=${json.uuid}`
+      document.cookie = `uuid=${json.uuid}; path=/`
     else
-      document.cookie = `uuid=${json.uuid};max-age=31536000`
+      document.cookie = `uuid=${json.uuid}; path=/; max-age=31536000`
 
-    window.location.replace("/index.html");
+    window.location.replace("/dashboard.html");
   }
   return false;
 }
