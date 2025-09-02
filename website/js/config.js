@@ -27,7 +27,7 @@ async function saveConfig(event) {
   configInfoBannerElement.style.color = "#FFA500";
 
   try {
-    var response = await fetch(`${location.protocol}//${window.location.hostname}:${location.port}/api/config`, {
+    var response = await fetch(`${location.protocol}//${window.location.host}/api/config`, {
       method: "POST",
       body: JSON.stringify(configData),
       headers: {
@@ -62,7 +62,7 @@ async function loadConfig() {
     configInfoBannerElement.innerHTML = "Cargando configuración actual...";
     configInfoBannerElement.style.color = "#FFA500";
     
-    var response = await fetch(`${location.protocol}//${window.location.hostname}:${location.port}/api/config`, {
+    var response = await fetch(`${location.protocol}//${window.location.host}/api/config`, {
       method: "GET",
       headers: {
         "Content-type": "application/json; charset=UTF-8"
