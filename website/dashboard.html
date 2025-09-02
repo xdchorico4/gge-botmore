@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GGE Bot Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1a1a1a;
+            color: white;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .header {
+            background-color: #2a2a2a;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .status {
+            background-color: #333;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .status.connected {
+            background-color: #0d7377;
+        }
+        .status.disconnected {
+            background-color: #8b0000;
+        }
+        .plugins-table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #2a2a2a;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .plugins-table th, .plugins-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #444;
+        }
+        .plugins-table th {
+            background-color: #333;
+        }
+        .btn {
+            background-color: #0d7377;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .btn:hover {
+            background-color: #14a085;
+        }
+        .btn.danger {
+            background-color: #8b0000;
+        }
+        .btn.danger:hover {
+            background-color: #a61e1e;
+        }
+        .form-group {
+            margin: 10px 0;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            background-color: #333;
+            border: 1px solid #555;
+            color: white;
+            border-radius: 4px;
+        }
+        .logs {
+            background-color: #000;
+            padding: 10px;
+            border-radius: 4px;
+            height: 200px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>GGE Bot Dashboard</h1>
+            <div id="websocket-status" class="status disconnected">
+                WebSocket: Desconectado
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Bots</h2>
+            <div class="form-group">
+                <label>Nombre del Bot:</label>
+                <input type="text" id="bot-name" placeholder="Nombre del bot">
+            </div>
+            <div class="form-group">
+                <label>Contraseña del Bot:</label>
+                <input type="password" id="bot-password" placeholder="Contraseña">
+            </div>
+            <button class="btn" onclick="addBot()">Agregar Bot</button>
+            
+            <table class="plugins-table">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Plugins</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="bots-table">
+                    <tr>
+                        <td colspan="4" style="text-align: center; padding: 20px;">
+                            No hay bots configurados
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section">
+            <h2>Plugins Disponibles</h2>
+            <table class="plugins-table">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Descripción</th>
+                    </tr>
+                </thead>
+                <tbody id="plugins-table">
+                    <tr>
+                        <td colspan="2" style="text-align: center; padding: 20px;">
+                            Cargando plugins...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="section">
+            <h2>Logs</h2>
+            <div id="logs" class="logs">
+                Conectando...
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let ws = null;
+        let uuid = null;
+        let plugins = [];
+        let bots = [];
+
+        // Obtener UUID de las cookies
+        function getUUID() {
+            const cookies = document.cookie.split(';');
+            for (let cookie of cookies) {
+                const [name, value] = cookie.trim().split('=');
+                if (name === 'uuid') {
+                    return value;
+                }
+            }
+            return null;
+        }
+
+        // Conectar WebSocket
+        function connectWebSocket() {
+            const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.hostname}:5001/`;
+            
+            log(`Intentando conectar a: ${wsUrl}`);
+            
+            ws = new WebSocket(wsUrl);
+            
+            ws.onopen = function() {
+                log('WebSocket conectado');
+                updateStatus('connected');
+                
+                // Autenticar
+                uuid = getUUID();
+                if (uuid) {
+                    sendMessage(0, 0, uuid); // ActionType.GetUUID = 0
+                } else {
+                    log('No se encontró UUID. Redirigiendo al login...');
+                    window.location.href = '/signin.html';
+                }
+            };
+            
+            ws.onmessage = function(event) {
+                try {
+                    const [error, action, data] = JSON.parse(event.data);
+                    handleMessage(error, action, data);
+                } catch (e) {
+                    log('Error parsing message: ' + e.message);
+                }
+            };
+            
+            ws.onclose = function() {
+                log('WebSocket desconectado');
+                updateStatus('disconnected');
+                setTimeout(connectWebSocket, 3000); // Reintentar en 3 segundos
+            };
+            
+            ws.onerror = function(error) {
+                log('WebSocket error: ' + error);
+                updateStatus('disconnected');
+            };
+        }
+
+        // Enviar mensaje
+        function sendMessage(error, action, data) {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify([error, action, data]));
+            } else {
+                log('WebSocket no está conectado');
+            }
+        }
+
+        // Manejar mensajes recibidos
+        function handleMessage(error, action, data) {
+            log(`Mensaje recibido: error=${error}, action=${action}`);
+            
+            if (error === 0) { // Success
+                switch (action) {
+                    case 0: // GetUUID
+                        log('Autenticación exitosa');
+                        // Solicitar usuarios y plugins
+                        sendMessage(0, 1, null); // GetUsers
+                        break;
+                    case 1: // GetUsers
+                        handleUsersData(data);
+                        break;
+                    case 7: // StatusUser
+                        updateBotStatus(data);
+                        break;
+                }
+            } else {
+                log(`Error en mensaje: ${error}`);
+            }
+        }
+
+        // Manejar datos de usuarios y plugins
+        function handleUsersData(data) {
+            if (Array.isArray(data) && data.length >= 2) {
+                bots = data[0] || [];
+                plugins = data[1] || [];
+                
+                log(`Recibidos ${bots.length} bots y ${plugins.length} plugins`);
+                
+                renderBots();
+                renderPlugins();
+            }
+        }
+
+        // Renderizar tabla de bots
+        function renderBots() {
+            const tbody = document.getElementById('bots-table');
+            
+            if (bots.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px;">No hay bots configurados</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = bots.map(bot => `
+                <tr>
+                    <td>${bot.name || 'Sin nombre'}</td>
+                    <td>${Object.keys(bot.plugins || {}).length} plugins</td>
+                    <td>${bot.state === 1 ? 'Activo' : 'Inactivo'}</td>
+                    <td>
+                        <button class="btn" onclick="toggleBot(${bot.id})">
+                            ${bot.state === 1 ? 'Detener' : 'Iniciar'}
+                        </button>
+                        <button class="btn danger" onclick="removeBot(${bot.id})">Eliminar</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Renderizar tabla de plugins
+        function renderPlugins() {
+            const tbody = document.getElementById('plugins-table');
+            
+            if (plugins.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="2" style="text-align: center; padding: 20px;">No hay plugins disponibles</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = plugins.map(plugin => `
+                <tr>
+                    <td>${plugin.name || plugin.key}</td>
+                    <td>${plugin.description || 'Sin descripción'}</td>
+                </tr>
+            `).join('');
+        }
+
+        // Actualizar estado de la conexión
+        function updateStatus(status) {
+            const statusElement = document.getElementById('websocket-status');
+            if (status === 'connected') {
+                statusElement.className = 'status connected';
+                statusElement.textContent = 'WebSocket: Conectado';
+            } else {
+                statusElement.className = 'status disconnected';
+                statusElement.textContent = 'WebSocket: Desconectado';
+            }
+        }
+
+        // Agregar mensaje a logs
+        function log(message) {
+            const logs = document.getElementById('logs');
+            const timestamp = new Date().toLocaleTimeString();
+            logs.innerHTML += `[${timestamp}] ${message}\n`;
+            logs.scrollTop = logs.scrollHeight;
+        }
+
+        // Agregar nuevo bot
+        function addBot() {
+            const name = document.getElementById('bot-name').value;
+            const password = document.getElementById('bot-password').value;
+            
+            if (!name || !password) {
+                alert('Por favor ingresa nombre y contraseña');
+                return;
+            }
+            
+            const botData = {
+                name: name,
+                pass: password,
+                plugins: {},
+                state: 0
+            };
+            
+            sendMessage(0, 4, botData); // AddUser action
+            
+            // Limpiar campos
+            document.getElementById('bot-name').value = '';
+            document.getElementById('bot-password').value = '';
+            
+            log(`Agregando bot: ${name}`);
+        }
+
+        // Alternar estado del bot
+        function toggleBot(botId) {
+            const bot = bots.find(b => b.id === botId);
+            if (bot) {
+                bot.state = bot.state === 1 ? 0 : 1;
+                sendMessage(0, 2, bot); // SetUser action
+                log(`${bot.state === 1 ? 'Iniciando' : 'Deteniendo'} bot: ${bot.name}`);
+            }
+        }
+
+        // Eliminar bot
+        function removeBot(botId) {
+            if (confirm('¿Estás seguro de que quieres eliminar este bot?')) {
+                const bot = bots.find(b => b.id === botId);
+                if (bot) {
+                    sendMessage(0, 3, bot); // RemoveUser action
+                    log(`Eliminando bot: ${bot.name}`);
+                }
+            }
+        }
+
+        // Actualizar estado del bot
+        function updateBotStatus(data) {
+            const botIndex = bots.findIndex(b => b.id === data.id);
+            if (botIndex !== -1) {
+                bots[botIndex] = { ...bots[botIndex], ...data };
+                renderBots();
+            }
+        }
+
+        // Inicializar cuando se carga la página
+        document.addEventListener('DOMContentLoaded', function() {
+            // Verificar si hay UUID
+            uuid = getUUID();
+            if (!uuid) {
+                log('No se encontró UUID. Redirigiendo al login...');
+                window.location.href = '/signin.html';
+                return;
+            }
+            
+            log('Inicializando dashboard...');
+            connectWebSocket();
+        });
+    </script>
+</body>
+</html>
