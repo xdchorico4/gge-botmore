@@ -33,12 +33,20 @@ async function login(event) {
       loginInfoBannerElement.innerHTML = json.error
       return false
     }
+    
+    console.log('Login exitoso, UUID recibido:', json.uuid);
+    
     if(!isChecked)
-      document.cookie = `uuid=${json.uuid}; path=/`
+      document.cookie = `uuid=${json.uuid}; path=/; SameSite=Lax`
     else
-      document.cookie = `uuid=${json.uuid}; path=/; max-age=31536000`
-
-    window.location.replace("/dashboard.html");
+      document.cookie = `uuid=${json.uuid}; path=/; max-age=31536000; SameSite=Lax`
+    
+    console.log('Cookie establecida:', document.cookie);
+    
+    // Dar un pequeño delay para asegurar que la cookie se establezca
+    setTimeout(() => {
+      window.location.replace("/dashboard.html");
+    }, 100);
   }
   return false;
 }

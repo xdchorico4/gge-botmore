@@ -392,22 +392,25 @@
 
         // Inicializar cuando se carga la página
         document.addEventListener('DOMContentLoaded', function() {
-            // Verificar si hay UUID
-            uuid = getUUID();
-            if (!uuid) {
-                log('No se encontró UUID. Por favor inicia sesión primero.');
-                // Mostrar mensaje de login en lugar de redirigir automáticamente
-                const header = document.querySelector('.header');
-                header.innerHTML += `
-                    <div style="background-color: #8b0000; padding: 10px; border-radius: 5px; margin-top: 10px;">
-                        <p>No has iniciado sesión. <a href="/signin.html" style="color: #14a085; text-decoration: underline;">Haz clic aquí para iniciar sesión</a></p>
-                    </div>
-                `;
-                return;
-            }
-            
-            log('Inicializando dashboard...');
-            connectWebSocket();
+            // Esperar un poco para que las cookies se establezcan completamente
+            setTimeout(() => {
+                // Verificar si hay UUID
+                uuid = getUUID();
+                if (!uuid) {
+                    log('No se encontró UUID. Por favor inicia sesión primero.');
+                    // Mostrar mensaje de login en lugar de redirigir automáticamente
+                    const header = document.querySelector('.header');
+                    header.innerHTML += `
+                        <div style="background-color: #8b0000; padding: 10px; border-radius: 5px; margin-top: 10px;">
+                            <p>No has iniciado sesión. <a href="/signin.html" style="color: #14a085; text-decoration: underline;">Haz clic aquí para iniciar sesión</a></p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                log('Inicializando dashboard con UUID: ' + uuid);
+                connectWebSocket();
+            }, 200);
         });
     </script>
 </body>
