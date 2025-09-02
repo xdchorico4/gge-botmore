@@ -7,6 +7,18 @@ if (require('node:worker_threads').isMainThread)
 const { xtHandler, sendXT, waitForResult } = require("../ggebot")
 const playerid = require("./playerid.js")
 
+// Polyfill para Promise.withResolvers si no existe
+if (!Promise.withResolvers) {
+    Promise.withResolvers = function() {
+        let resolve, reject;
+        const promise = new Promise((res, rej) => {
+            resolve = res;
+            reject = rej;
+        });
+        return { promise, resolve, reject };
+    };
+}
+
 const event = new EventTarget()
 
 let gamResolverHasResolved = false

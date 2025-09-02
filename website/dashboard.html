@@ -89,6 +89,58 @@
             overflow-y: auto;
             font-family: monospace;
             font-size: 12px;
+            line-height: 1.4;
+        }
+        .plugins-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .plugin-card {
+            background-color: #2a2a2a;
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding: 15px;
+        }
+        .plugin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .plugin-name {
+            font-weight: bold;
+            color: #14a085;
+        }
+        .plugin-status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .plugin-status.active {
+            background-color: #0d7377;
+            color: white;
+        }
+        .plugin-status.inactive {
+            background-color: #666;
+            color: white;
+        }
+        .plugin-description {
+            color: #ccc;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+        .plugin-options {
+            border-top: 1px solid #444;
+            padding-top: 10px;
+            margin-top: 10px;
+        }
+        .option-item {
+            margin: 5px 0;
+            font-size: 12px;
+            color: #aaa;
         }
     </style>
 </head>
@@ -118,13 +170,14 @@
                     <tr>
                         <th>Nombre</th>
                         <th>Plugins</th>
+                        <th>Conexión</th>
                         <th>Estado</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
                 <tbody id="bots-table">
                     <tr>
-                        <td colspan="4" style="text-align: center; padding: 20px;">
+                        <td colspan="5" style="text-align: center; padding: 20px;">
                             No hay bots configurados
                         </td>
                     </tr>
@@ -134,21 +187,11 @@
 
         <div class="section">
             <h2>Plugins Disponibles</h2>
-            <table class="plugins-table">
-                <thead>
-                    <tr>
-                        <th>Nombre</th>
-                        <th>Descripción</th>
-                    </tr>
-                </thead>
-                <tbody id="plugins-table">
-                    <tr>
-                        <td colspan="2" style="text-align: center; padding: 20px;">
-                            Cargando plugins...
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+            <div id="plugins-grid" class="plugins-grid">
+                <div style="text-align: center; padding: 20px; grid-column: 1 / -1;">
+                    Cargando plugins...
+                </div>
+            </div>
         </div>
 
         <div class="section">
@@ -275,40 +318,69 @@
             const tbody = document.getElementById('bots-table');
             
             if (bots.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px;">No hay bots configurados</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px;">No hay bots configurados</td></tr>';
                 return;
             }
             
-            tbody.innerHTML = bots.map(bot => `
-                <tr>
-                    <td>${bot.name || 'Sin nombre'}</td>
-                    <td>${Object.keys(bot.plugins || {}).length} plugins</td>
-                    <td>${bot.state === 1 ? 'Activo' : 'Inactivo'}</td>
-                    <td>
-                        <button class="btn" onclick="toggleBot(${bot.id})">
-                            ${bot.state === 1 ? 'Detener' : 'Iniciar'}
-                        </button>
-                        <button class="btn danger" onclick="removeBot(${bot.id})">Eliminar</button>
-                    </td>
-                </tr>
-            `).join('');
+            tbody.innerHTML = bots.map(bot => {
+                const activePlugins = Object.keys(bot.plugins || {}).filter(key => bot.plugins[key]?.state).length;
+                const totalPlugins = Object.keys(bot.plugins || {}).length;
+                const statusColor = bot.state === 1 ? '#0d7377' : '#666';
+                const connectionStatus = bot.state === 1 ? 'En juego 🎮' : 'Desconectado ⭕';
+                
+                return `
+                    <tr>
+                        <td>${bot.name || 'Sin nombre'}</td>
+                        <td>${activePlugins}/${totalPlugins} activos</td>
+                        <td style="color: ${statusColor}; font-weight: bold;">${connectionStatus}</td>
+                        <td>${bot.state === 1 ? 'Funcional' : 'Inactivo'}</td>
+                        <td>
+                            <button class="btn" onclick="toggleBot(${bot.id})">
+                                ${bot.state === 1 ? 'Detener' : 'Iniciar'}
+                            </button>
+                            <button class="btn danger" onclick="removeBot(${bot.id})">Eliminar</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
         }
 
-        // Renderizar tabla de plugins
+        // Renderizar grid de plugins
         function renderPlugins() {
-            const tbody = document.getElementById('plugins-table');
+            const grid = document.getElementById('plugins-grid');
             
             if (plugins.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="2" style="text-align: center; padding: 20px;">No hay plugins disponibles</td></tr>';
+                grid.innerHTML = '<div style="text-align: center; padding: 20px; grid-column: 1 / -1;">No hay plugins disponibles</div>';
                 return;
             }
             
-            tbody.innerHTML = plugins.map(plugin => `
-                <tr>
-                    <td>${plugin.name || plugin.key}</td>
-                    <td>${plugin.description || 'Sin descripción'}</td>
-                </tr>
-            `).join('');
+            grid.innerHTML = plugins.map(plugin => {
+                const options = plugin.pluginOptions || [];
+                const optionsHtml = options.length > 0 ? `
+                    <div class="plugin-options">
+                        <strong>Opciones:</strong><br>
+                        ${options.map(opt => `
+                            <div class="option-item">
+                                • ${opt.label} (${opt.type})
+                                ${opt.default !== undefined ? ` - Default: ${opt.default}` : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                ` : '';
+                
+                return `
+                    <div class="plugin-card">
+                        <div class="plugin-header">
+                            <div class="plugin-name">${plugin.name || plugin.key}</div>
+                            <div class="plugin-status inactive">Disponible</div>
+                        </div>
+                        <div class="plugin-description">
+                            ${plugin.description || 'Sin descripción disponible'}
+                        </div>
+                        ${optionsHtml}
+                    </div>
+                `;
+            }).join('');
         }
 
         // Actualizar estado de la conexión
@@ -323,11 +395,11 @@
             }
         }
 
-        // Agregar mensaje a logs
+        // Agregar mensaje a logs con líneas nuevas
         function log(message) {
             const logs = document.getElementById('logs');
             const timestamp = new Date().toLocaleTimeString();
-            logs.innerHTML += `[${timestamp}] ${message}\n`;
+            logs.innerHTML += `[${timestamp}] ${message}<br>`;
             logs.scrollTop = logs.scrollHeight;
         }
 
@@ -354,7 +426,8 @@
             document.getElementById('bot-name').value = '';
             document.getElementById('bot-password').value = '';
             
-            log(`Agregando bot: ${name}`);
+            log(`🤖 Agregando bot: ${name}`);
+            log(`⚙️ Configurando plugins por defecto...`);
         }
 
         // Alternar estado del bot
@@ -363,7 +436,14 @@
             if (bot) {
                 bot.state = bot.state === 1 ? 0 : 1;
                 sendMessage(0, 2, bot); // SetUser action
-                log(`${bot.state === 1 ? 'Iniciando' : 'Deteniendo'} bot: ${bot.name}`);
+                if (bot.state === 1) {
+                    log(`🚀 Iniciando bot: ${bot.name}`);
+                    log(`🔗 Conectando al servidor de juego...`);
+                    log(`🎮 Entrando al juego Good Game Empire...`);
+                } else {
+                    log(`⏹️ Deteniendo bot: ${bot.name}`);
+                    log(`🚪 Desconectando del juego...`);
+                }
             }
         }
 
@@ -373,7 +453,8 @@
                 const bot = bots.find(b => b.id === botId);
                 if (bot) {
                     sendMessage(0, 3, bot); // RemoveUser action
-                    log(`Eliminando bot: ${bot.name}`);
+                    log(`🗑️ Eliminando bot: ${bot.name}`);
+                    log(`🚪 Cerrando conexiones...`);
                 }
             }
         }
