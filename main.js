@@ -248,7 +248,8 @@ async function start() {
   // Endpoint para obtener configuración del WebSocket
   app.get("/api/ws-config", (req, res) => {
     res.setHeader('Content-Type', 'application/json');
-    const wsPort = process.env.WS_PORT || (process.env.PORT ? (parseInt(process.env.PORT) + 1) : 8883);
+    // En Replit, usar el mismo puerto para HTTP y WebSocket
+    const wsPort = process.env.PORT || PORT;
     res.send(JSON.stringify({ wsPort: wsPort, domain: req.get('Host') }));
   });
   app.post("/api", bodyParser.json(), async (req, res) => {
@@ -367,16 +368,20 @@ async function start() {
   // Usar el puerto proporcionado por Railway o usar puertos por defecto
   const PORT = process.env.PORT || (certFound ? 443 : 80);
   
+  // Crear el servidor una sola vez para HTTP y WebSocket
+  let server;
   if (certFound) {
     options.key = fs.readFileSync(ggeConfig.privateKey, 'utf8'),
       options.cert = fs.readFileSync(ggeConfig.cert, 'utf8')
 
-    https.createServer(options, app).listen(PORT, '0.0.0.0', () => {
+    server = https.createServer(options, app);
+    server.listen(PORT, '0.0.0.0', () => {
       console.log(`Servidor HTTPS escuchando en el puerto ${PORT} y host 0.0.0.0`)
     })
   }
   else {
-    http.createServer(options, app).listen(PORT, '0.0.0.0', () => {
+    server = http.createServer(options, app);
+    server.listen(PORT, '0.0.0.0', () => {
       console.log(`Servidor HTTP escuchando en el puerto ${PORT} y host 0.0.0.0`)
     })
   }
@@ -611,15 +616,7 @@ async function start() {
     }
   })
 
-  let server = (certFound ? https : http).createServer(options)
-
-  // Usar un puerto diferente para WebSocket, o usar el puerto principal + 1 si está en Railway
-  const WS_PORT = process.env.WS_PORT || (process.env.PORT ? (parseInt(process.env.PORT) + 1) : 8883);
-  
-  server.listen(WS_PORT, '0.0.0.0', () => {
-    console.log(`Servidor WebSocket escuchando en el puerto ${WS_PORT} y host 0.0.0.0`)
-  })
-
+  // Usar el mismo servidor para WebSocket
   let wss = new WebSocketServer({ server })
 
   wss.addListener("connection", (ws) => {
