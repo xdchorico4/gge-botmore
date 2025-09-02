@@ -166,17 +166,14 @@
         let plugins = [];
         let bots = [];
 
-        // Obtener UUID de las cookies
+        // Obtener UUID del localStorage
         function getUUID() {
-            const cookies = document.cookie.split(';');
-            for (let cookie of cookies) {
-                const [name, value] = cookie.trim().split('=');
-                if (name === 'uuid' && value && value !== 'undefined') {
-                    console.log('UUID encontrado:', value);
-                    return value;
-                }
+            const uuid = localStorage.getItem('uuid');
+            if (uuid && uuid !== 'undefined' && uuid !== 'null') {
+                console.log('UUID encontrado en localStorage:', uuid);
+                return uuid;
             }
-            console.log('No se encontró UUID válido en cookies:', document.cookie);
+            console.log('No se encontró UUID válido en localStorage');
             return null;
         }
 
@@ -392,25 +389,22 @@
 
         // Inicializar cuando se carga la página
         document.addEventListener('DOMContentLoaded', function() {
-            // Esperar un poco para que las cookies se establezcan completamente
-            setTimeout(() => {
-                // Verificar si hay UUID
-                uuid = getUUID();
-                if (!uuid) {
-                    log('No se encontró UUID. Por favor inicia sesión primero.');
-                    // Mostrar mensaje de login en lugar de redirigir automáticamente
-                    const header = document.querySelector('.header');
-                    header.innerHTML += `
-                        <div style="background-color: #8b0000; padding: 10px; border-radius: 5px; margin-top: 10px;">
-                            <p>No has iniciado sesión. <a href="/signin.html" style="color: #14a085; text-decoration: underline;">Haz clic aquí para iniciar sesión</a></p>
-                        </div>
-                    `;
-                    return;
-                }
-                
-                log('Inicializando dashboard con UUID: ' + uuid);
-                connectWebSocket();
-            }, 200);
+            // Verificar si hay UUID
+            uuid = getUUID();
+            if (!uuid) {
+                log('No se encontró UUID. Por favor inicia sesión primero.');
+                // Mostrar mensaje de login en lugar de redirigir automáticamente
+                const header = document.querySelector('.header');
+                header.innerHTML += `
+                    <div style="background-color: #8b0000; padding: 10px; border-radius: 5px; margin-top: 10px;">
+                        <p>No has iniciado sesión. <a href="/signin.html" style="color: #14a085; text-decoration: underline;">Haz clic aquí para iniciar sesión</a></p>
+                    </div>
+                `;
+                return;
+            }
+            
+            log('Inicializando dashboard con UUID: ' + uuid);
+            connectWebSocket();
         });
     </script>
 </body>

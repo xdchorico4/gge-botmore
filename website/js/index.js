@@ -36,17 +36,16 @@ async function login(event) {
     
     console.log('Login exitoso, UUID recibido:', json.uuid);
     
-    if(!isChecked)
-      document.cookie = `uuid=${json.uuid}; path=/; SameSite=Lax`
-    else
-      document.cookie = `uuid=${json.uuid}; path=/; max-age=31536000; SameSite=Lax`
+    // Usar localStorage en lugar de cookies (más confiable en Replit)
+    localStorage.setItem('uuid', json.uuid);
+    if(isChecked) {
+      localStorage.setItem('rememberLogin', 'true');
+    }
     
-    console.log('Cookie establecida:', document.cookie);
+    console.log('UUID guardado en localStorage:', localStorage.getItem('uuid'));
     
-    // Dar un pequeño delay para asegurar que la cookie se establezca
-    setTimeout(() => {
-      window.location.replace("/dashboard.html");
-    }, 100);
+    // Redirigir inmediatamente
+    window.location.replace("/dashboard.html");
   }
   return false;
 }
