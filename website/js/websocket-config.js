@@ -1,19 +1,16 @@
 // Función para obtener la configuración correcta del WebSocket
 async function getWebSocketConfig() {
   try {
-    const response = await fetch('/api/ws-config');
-    const config = await response.json();
-    // En Replit, usar siempre ws:// ya que el servidor está en HTTP
-    const protocol = 'ws:';
-    const host = window.location.hostname;
-    const port = config.wsPort || '5000';
-    return `${protocol}//${host}:${port}/`;
+    // En Replit, usar el mismo host y puerto que la página actual
+    const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const host = window.location.host; // Incluye puerto automáticamente
+    return `${protocol}//${host}/`;
   } catch (error) {
     console.error('Error obteniendo configuración WebSocket:', error);
-    // Fallback a configuración por defecto - usar ws:// para HTTP
-    const protocol = 'ws:';
-    const host = window.location.hostname;
-    return `${protocol}//${host}:5000/`;
+    // Fallback usando el host actual
+    const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const host = window.location.host;
+    return `${protocol}//${host}/`;
   }
 }
 
